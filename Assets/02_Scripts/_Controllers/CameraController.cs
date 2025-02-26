@@ -45,12 +45,20 @@ public class CameraController : MonoBehaviour
     [Header("Collision")][SerializeField] float _collisionOffset; // 카메라와 장애물 사이 최소 거리
     public float CollisionOffset { get { return _collisionOffset; } }
 
+    [Header("Collision")][SerializeField] int _originalCullingMask; // 카메라와 장애물 사이 최소 거리
+    public int OriginalCullingMask { get { return _originalCullingMask; } }
+
+    [Header("Camera")][SerializeField] Camera _cam; // 카메라와 장애물 사이 최소 거리
+    public Camera Cam { get { return _cam; } }
+
     // 내부적으로 1인칭 모드에서의 yaw, pitch 값을 저장
     private float _firstPersonYaw;
     private float _firstPersonPitch;
 
     void Start()
     {
+        _cam = GetComponent<Camera>();
+        _originalCullingMask = _cam.cullingMask;
         CameraInit();
     }
 
@@ -79,6 +87,9 @@ public class CameraController : MonoBehaviour
 
         // [카메라 회전 처리]
         CameraRotate(firstPersonPos);
+
+        // [카메라 컬링마스크]
+        UpdateCullingMask();
     }
 
     void CameraInit()
@@ -147,6 +158,20 @@ public class CameraController : MonoBehaviour
 
         // 1인칭 모드: 자유 회전 값 적용
         this.transform.rotation = Quaternion.Euler(_firstPersonPitch, _firstPersonYaw, 0f);
+    }
+
+    void UpdateCullingMask()
+    {
+        int playerLayer = LayerMask.NameToLayer("Player"); // 플레이어가 할당된 레이어 이름
+        if (_currentLerp < 0.01f) // 1인칭 모드
+        {
+            // 원래 마스크에서 플레이어 레이어 제거
+            _cam.cullingMask = _originalCullingMask & ~(1 << playerLayer);
+        }
+        else // 3인칭 모드
+        {
+            _cam.cullingMask = _originalCullingMask;
+        }
     }
 
 }
