@@ -11,7 +11,7 @@ public class PlayerUnit : MonoBehaviour
     public float f { get { return _f; } }
     [SerializeField] private float _f;
 
-    public string s { get { return _s; }  }
+    public string s { get { return _s; } }
     [SerializeField] private string _s;
 
     float t = 0.0f;
@@ -22,6 +22,10 @@ public class PlayerUnit : MonoBehaviour
         print(i);
         print(f);
         print(s);
+
+        print(5 == 5);
+        print(!(5 > 3));
+        print(!true);
     }
 
     void Update()
