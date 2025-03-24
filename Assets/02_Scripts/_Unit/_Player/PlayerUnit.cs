@@ -15,6 +15,7 @@ public class PlayerUnit : MonoBehaviour
     [SerializeField] private string _s;
 
     float t = 0.0f;
+    uint count = 0;
 
     void Start()
     {
@@ -26,6 +27,26 @@ public class PlayerUnit : MonoBehaviour
         print(5 == 5);
         print(!(5 > 3));
         print(!true);
+
+        while (count < 5)
+        {
+            print("이게 몇번째냐");
+
+            count++;
+        }
+
+        for (int i = 0; i < 5; i++)
+        {
+            print("인생이 힘들다고 생각할때 깨달아야한다 우리 부모님이 우리를 위해 얼마나 열심히 일하시는지.");   
+        }
+
+        int num3 = 1;
+
+        do
+        {
+            print(num3);
+            num3++;
+        } while (num3 <= 100);
     }
 
     void Update()
@@ -37,5 +58,6 @@ public class PlayerUnit : MonoBehaviour
             print(s);
             t = 0.0f;
         }
+            
     }
 }
