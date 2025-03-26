@@ -162,15 +162,15 @@ public class CameraController : MonoBehaviour
 
     void UpdateCullingMask()
     {
-        int playerLayer = LayerMask.NameToLayer("Player"); // 플레이어가 할당된 레이어 이름
+        //int playerLayer = LayerMask.NameToLayer("Player"); // 플레이어가 할당된 레이어 이름
         if (_currentLerp < 0.01f) // 1인칭 모드
         {
             // 원래 마스크에서 플레이어 레이어 제거
-            _cam.cullingMask = _originalCullingMask & ~(1 << playerLayer);
+            //_cam.cullingMask = _originalCullingMask & ~(1 << playerLayer);
         }
         else // 3인칭 모드
         {
-            _cam.cullingMask = _originalCullingMask;
+            //_cam.cullingMask = _originalCullingMask;
         }
     }
 

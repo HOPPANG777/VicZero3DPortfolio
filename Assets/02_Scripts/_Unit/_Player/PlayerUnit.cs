@@ -14,6 +14,9 @@ public class PlayerUnit : MonoBehaviour
     public string s { get { return _s; } }
     [SerializeField] private string _s;
 
+    public int[] arr { get { return _arr; } }
+    [SerializeField] private int[] _arr;
+
     float t = 0.0f;
     uint count = 0;
 
