@@ -8,6 +8,16 @@ using System.Runtime.CompilerServices;
 using Unity.VisualScripting;
 using UnityEngine.InputSystem;
 
+
+//==============================================================================
+// CameraController
+//==============================================================================
+// 카메라가 타겟(플레이어)등을 따라다니도록 하는 컨트롤러
+// 1인칭과 3인칭을 전환 할 수 있으며, 1인칭에서는 시야의 자유 전환이 가능하다.
+// 플레이어는 카메라에 따라 이동할 수 있도록 할 것이다.
+// 3인칭은 카메라가 기본적으론 플레이어를 따라서 움직이지만 화면 전환 또한 가능하다.
+// 플레이어의 이동 로직은 PlayerMoveController로.
+//==============================================================================
 public class CameraController : MonoBehaviour
 {
     // 카메라가 따라갈 대상 (플레이어 등)
@@ -162,15 +172,15 @@ public class CameraController : MonoBehaviour
 
     void UpdateCullingMask()
     {
-        //int playerLayer = LayerMask.NameToLayer("Player"); // 플레이어가 할당된 레이어 이름
+        int playerLayer = LayerMask.NameToLayer("Player"); // 플레이어가 할당된 레이어 이름
         if (_currentLerp < 0.01f) // 1인칭 모드
         {
             // 원래 마스크에서 플레이어 레이어 제거
-            //_cam.cullingMask = _originalCullingMask & ~(1 << playerLayer);
+            _cam.cullingMask = _originalCullingMask & ~(1 << playerLayer);
         }
         else // 3인칭 모드
         {
-            //_cam.cullingMask = _originalCullingMask;
+            _cam.cullingMask = _originalCullingMask;
         }
     }
 
