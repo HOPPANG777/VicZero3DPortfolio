@@ -61,9 +61,20 @@ public class CameraController : MonoBehaviour
     [Header("Camera")][SerializeField] Camera _cam; // 카메라와 장애물 사이 최소 거리
     public Camera Cam { get { return _cam; } }
 
+    [Header("Third Person Camera Settings")][SerializeField] private float _thirdPersonOrbitSensitivity;  // 마우스 입력 민감도
+    public float ThirdPersonOrbitSensitivity { get { return _thirdPersonOrbitSensitivity; } }
+
+
+    [Header("Third Person Camera Settings")][SerializeField] private float _thirdPersonVerticalSensitivity;    // 상하 회전 민감도
+    public float ThirdPersonVerticalSensitivity { get { return _thirdPersonVerticalSensitivity; } }
+
+    [Header("Third Person Camera Settings")][SerializeField] private float _thirdPersonPitch;                    // 초기 피치 (예: 0 혹은 약간 아래로)
+    public float ThirdPersonPitch { get { return _thirdPersonPitch; } }
+
     // 내부적으로 1인칭 모드에서의 yaw, pitch 값을 저장
     private float _firstPersonYaw;
     private float _firstPersonPitch;
+    private float _thirdPersonYaw = 0f; // 현재 3인칭 오빗 각도
 
     void Start()
     {
@@ -78,17 +89,37 @@ public class CameraController : MonoBehaviour
         float mouseX = Input.GetAxis("Mouse X");
         float mouseY = Input.GetAxis("Mouse Y");
 
-        // [1인칭 자유회전 업데이트]
-        CameraFreeRotate(mouseX, mouseY);
+        // 1인칭 모드일 때 자유 회전 (현재 코드 그대로)
+        if (_currentLerp < 0.01f)
+        {
+            CameraFreeRotate(mouseX, mouseY);
+        }
+        else
+        {
+            // 3인칭 모드에서는 마우스 X 입력으로 오빗 각도를 업데이트합니다.
+            _thirdPersonYaw += mouseX * _thirdPersonOrbitSensitivity;
+        }
 
-        // [전환 입력 처리]
+        // 전환 입력 처리 (현재 코드 그대로)
         CameraInput(mouseY);
 
         // [카메라 위치 계산]
         // 1인칭 위치: 타겟 위치 + 1인칭 오프셋 (가슴 위치)
         Vector3 firstPersonPos = _targetObject.transform.position + _firstPersonOffset;
-        // 3인칭 위치: 타겟 위치 + 타겟 로컬 회전을 적용한 3인칭 오프셋
-        Vector3 thirdPersonPos = _targetObject.transform.position + _targetObject.transform.rotation * _thirdPersonOffset;
+
+        Vector3 thirdPersonPos;
+        if (_currentLerp > 0.01f)
+        {
+            // 3인칭 모드에서는 _thirdPersonYaw를 적용한 오프셋 계산
+            Quaternion orbitRotation = Quaternion.Euler(0f, _thirdPersonYaw, 0f);
+            thirdPersonPos = _targetObject.transform.position + orbitRotation * _thirdPersonOffset;
+        }
+        else
+        {
+            // 1인칭 모드: 기존 방식 유지
+            thirdPersonPos = _targetObject.transform.position + _targetObject.transform.rotation * _thirdPersonOffset;
+        }
+
         // Lerp를 통해 최종 카메라 위치 계산
         Vector3 desiredPosition = Vector3.Lerp(firstPersonPos, thirdPersonPos, _currentLerp);
 
@@ -101,6 +132,7 @@ public class CameraController : MonoBehaviour
         // [카메라 컬링마스크]
         UpdateCullingMask();
     }
+
 
     void CameraInit()
     {
@@ -156,14 +188,16 @@ public class CameraController : MonoBehaviour
 
     void CameraRotate(Vector3 firstPersonPos)
     {
-        // 3인칭 모드
         if (_currentLerp > 0.01f)
         {
+            // 3인칭 모드: 카메라가 대상(플레이어)을 바라보도록 설정하고,
+            // 추가 피치를 곱해 약간 아래를 보도록 합니다.
             Vector3 lookDir = firstPersonPos - transform.position;
             if (lookDir.sqrMagnitude <= 0.0001f) return;
 
             Quaternion baseRot = Quaternion.LookRotation(lookDir, Vector3.up);
-            this.transform.rotation = baseRot * Quaternion.Euler(-_additionalThirdPersonPitch, 0f, 0f); return;
+            this.transform.rotation = baseRot * Quaternion.Euler(-_additionalThirdPersonPitch, 0f, 0f);
+            return;
         }
 
         // 1인칭 모드: 자유 회전 값 적용

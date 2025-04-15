@@ -627,7 +627,6 @@ MonoBehaviour:
   _playerCapsuleCollider: {fileID: 197290777}
   _moveSpeed: 5
   _jumpForce: 5
-  _jumpRequested: 0
 --- !u!43 &700346698
 Mesh:
   m_ObjectHideFlags: 0
@@ -954,6 +953,7 @@ MonoBehaviour:
   _collisionOffset: 0.1
   _originalCullingMask: 0
   _cam: {fileID: 705397369}
+  _thirdPersonOrbitSensitivity: 2
 --- !u!43 &742375709
 Mesh:
   m_ObjectHideFlags: 0
