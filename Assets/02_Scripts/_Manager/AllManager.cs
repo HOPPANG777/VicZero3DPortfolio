@@ -18,6 +18,8 @@ public class AllManager : Singleton<AllManager>
     {
         Screen.SetResolution(1920, 1080, true);
         Application.targetFrameRate = 60;
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
 
         if (_gameModeController == null) Debug.Log("GameMode Controller가 없습니다.");
     }

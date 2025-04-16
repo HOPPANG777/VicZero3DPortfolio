@@ -84,8 +84,6 @@ public class CameraController : MonoBehaviour
 
     void Start()
     {
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
         _cam = GetComponent<Camera>();
         _originalCullingMask = _cam.cullingMask;
         CameraInit();
