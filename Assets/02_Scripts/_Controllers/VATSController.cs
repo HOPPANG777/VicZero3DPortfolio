@@ -1,60 +1,118 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-//==============================================================================
-// VATSController
-//==============================================================================
-// Æú¾Æ¿ô¿¡ ³ª¿Â VATS ½Ã½ºÅÛ ±¸Çö
-// 
-//==============================================================================
-
+/// <summary>
+/// VATS ì‹œìŠ¤í…œì„ ì œì–´í•˜ëŠ” ì»´í¬ë„ŒíŠ¸
+/// </summary>
 public class VATSController : MonoBehaviour
 {
     [Header("VATS Settings")]
-    [Tooltip("Time scale during VATS mode (e.g., 0.2 for slow motion)")]
-    [SerializeField] private float _vatsTimeScale;
+    [Tooltip("VATS ëª¨ë“œì—ì„œ ì‚¬ìš©í•  íƒ€ì„ ìŠ¤ì¼€ì¼ (ì˜ˆ: 0.2f)")]
+    [SerializeField] private float _vatsTimeScale = 0.2f;
     public float VATSTimeScale { get { return _vatsTimeScale; } set { _vatsTimeScale = value; } }
 
-    [Tooltip("Key to toggle VATS mode")]
+    [Tooltip("VATS ëª¨ë“œë¥¼ í† ê¸€í•  í‚¤")]
     [SerializeField] private KeyCode _vatsToggleKey = KeyCode.V;
     public KeyCode VATSToggleKey { get { return _vatsToggleKey; } }
 
     [Header("UI")]
-    [Tooltip("VATS UI overlay (e.g., targeting reticle & enemy highlights)")]
+    [Tooltip("VATS UI ì˜¤ë²„ë ˆì´")]
     [SerializeField] private GameObject _vatsUI;
-    public GameObject VatsUI { get { return _vatsUI; } } 
+    public GameObject VatsUI { get { return _vatsUI; } }
 
-    [SerializeField] private bool _isVATSActive; // false
-    public bool isVATSActive { get { return _isVATSActive; } }
+    [Tooltip("ì„ íƒëœ ë¶€ìœ„ ì´ë¦„ í‘œì‹œ")]
+    [SerializeField] private Text _partNameText;
+    public Text PartNameText { get { return _partNameText; } }
 
-    [SerializeField] private float originalTimeScale; // 1f
-    public float OriginalTimeScale { get { return originalTimeScale; } }
+    [Header("Targeting")]
+    [Tooltip("íƒ€ê²Ÿ ë ˆì´ì–´ ë§ˆìŠ¤í¬")]
+    [SerializeField] private LayerMask _targetLayerMask = ~0;
+    public LayerMask TargetLayerMask { get { return _targetLayerMask; } set { _targetLayerMask = value; } }
 
-    // Å¸±ê °ËÃâ(¿¹: Raycast ¶Ç´Â SphereCast¸¦ ÅëÇÑ °£´ÜÇÑ ±¸Çö)
-    // ÃßÈÄ ¼¼ºÎ Å¸±ê(ÀûÀÇ ºÎÀ§) ¼±ÅÃ ·ÎÁ÷À» Ãß°¡ÇÒ ¼ö ÀÖÀ½.
+    [SerializeField] private bool _isVATSActive;
+    public bool IsVATSActive { get { return _isVATSActive; } }
+
+    private float _originalTimeScale = 1f;
+    public float OriginalTimeScale { get { return _originalTimeScale; } }
+
+    private IVATSTarget _currentTarget;
+    public IVATSTarget CurrentTarget { get { return _currentTarget; } }
+
+    private int _currentPartIndex;
+    public int CurrentPartIndex { get { return _currentPartIndex; } }
+
     void Update()
     {
-        // VATS ¸ğµå Åä±Û ÀÔ·Â °¨Áö (À§ ÄÚµå¿Í Áßº¹µÊ)
         if (Input.GetKeyDown(_vatsToggleKey))
         {
             ToggleVATS();
         }
 
-        // VATS ¸ğµåÀÏ ¶§ Å¸±ê °ËÃâ ¿¹½Ã
-        if (isVATSActive)
+        if (_isVATSActive)
         {
-            RaycastHit hit;
-            // Ä«¸Ş¶ó Áß¾Ó¿¡¼­ Raycast
-            Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
-            if (Physics.Raycast(ray, out hit, 100f))
+            UpdateTargeting();
+            HandlePartInput();
+        }
+    }
+
+    void UpdateTargeting()
+    {
+        Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
+        if (Physics.Raycast(ray, out RaycastHit hit, 100f, _targetLayerMask))
+        {
+            IVATSTarget target = hit.collider.GetComponentInParent<IVATSTarget>();
+            if (target != null && target != _currentTarget)
             {
-                // ¿¹: hit.collider°¡ ÀûÀÇ ÅÂ±×("Enemy")¸¦ °¡Áø °æ¿ì
-                if (hit.collider.CompareTag("Enemy"))
-                {
-                    // UI¿¡¼­ ÇØ´ç ÀûÀ» ÇÏÀÌ¶óÀÌÆ®ÇÏ°Å³ª, Á¶ÁØ ÀÎµğÄÉÀÌÅÍ ¾÷µ¥ÀÌÆ®
-                    // Debug.Log("Å¸±ê ÈÄº¸: " + hit.collider.gameObject.name);
-                }
+                if (_currentTarget != null) _currentTarget.ClearHighlight();
+                _currentTarget = target;
+                _currentPartIndex = 0;
+                _currentTarget.HighlightPart(_currentPartIndex);
+                UpdatePartName();
             }
+        }
+        else
+        {
+            if (_currentTarget != null)
+            {
+                _currentTarget.ClearHighlight();
+                _currentTarget = null;
+                if (_partNameText != null) _partNameText.text = string.Empty;
+            }
+        }
+    }
+
+    void HandlePartInput()
+    {
+        if (_currentTarget == null) return;
+        int partCount = _currentTarget.Parts.Length;
+        if (partCount == 0) return;
+
+        if (Input.GetKeyDown(KeyCode.LeftArrow))
+        {
+            _currentPartIndex = (_currentPartIndex - 1 + partCount) % partCount;
+            _currentTarget.HighlightPart(_currentPartIndex);
+            UpdatePartName();
+        }
+        else if (Input.GetKeyDown(KeyCode.RightArrow))
+        {
+            _currentPartIndex = (_currentPartIndex + 1) % partCount;
+            _currentTarget.HighlightPart(_currentPartIndex);
+            UpdatePartName();
+        }
+
+        if (Input.GetKeyDown(KeyCode.Return))
+        {
+            IVATSPart part = _currentTarget.Parts[_currentPartIndex];
+            part.OnHit();
+        }
+    }
+
+    void UpdatePartName()
+    {
+        if (_partNameText != null && _currentTarget != null)
+        {
+            IVATSPart part = _currentTarget.Parts[_currentPartIndex];
+            _partNameText.text = string.Format("{0} ({1:F0}%)", part.PartName, part.HitChance);
         }
     }
 
@@ -64,22 +122,22 @@ public class VATSController : MonoBehaviour
 
         if (_isVATSActive)
         {
-            // VATS ¸ğµå ÁøÀÔ: ½Ã°£ ´À¸®°Ô, UI Ç¥½Ã
-            originalTimeScale = Time.timeScale;
+            _originalTimeScale = Time.timeScale;
             Time.timeScale = _vatsTimeScale;
-            if (_vatsUI != null)
-            {
-                _vatsUI.SetActive(true);
-            }
+            if (_vatsUI != null) _vatsUI.SetActive(true);
         }
         else
         {
-            // VATS ¸ğµå ÇØÁ¦: ¿ø·¡ ½Ã°£ º¹±Í, UI ¼û±è
-            Time.timeScale = originalTimeScale;
-            if (_vatsUI != null)
+            Time.timeScale = _originalTimeScale;
+            if (_vatsUI != null) _vatsUI.SetActive(false);
+
+            if (_currentTarget != null)
             {
-                _vatsUI.SetActive(false);
+                _currentTarget.ClearHighlight();
+                _currentTarget = null;
             }
+
+            if (_partNameText != null) _partNameText.text = string.Empty;
         }
     }
 }
