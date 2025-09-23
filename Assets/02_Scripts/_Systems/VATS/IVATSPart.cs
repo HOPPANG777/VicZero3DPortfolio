@@ -8,6 +8,7 @@ public interface IVATSPart
     string PartName { get; }
     float HitChance { get; }
     Transform AimPoint { get; }
+    float APCost { get; }
     void Highlight(bool enable);
     void OnHit();
 }
