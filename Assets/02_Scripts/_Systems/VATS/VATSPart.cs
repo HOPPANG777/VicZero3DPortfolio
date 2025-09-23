@@ -13,6 +13,10 @@ public class VATSPart : MonoBehaviour, IVATSPart
     [SerializeField] private float _hitChance = 100f;
     public float HitChance { get { return _hitChance; } }
 
+    [Header("필요 AP")]
+    [SerializeField] private float _apCost = 1f;
+    public float APCost { get { return Mathf.Max(0f, _apCost); } }
+
     [Header("조준 지점")]
     [SerializeField] private Transform _aimPoint;
     public Transform AimPoint { get { return _aimPoint ? _aimPoint : this.transform; } }
