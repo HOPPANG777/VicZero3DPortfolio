@@ -53,7 +53,7 @@ public class HandGunSimpleShootController : MonoBehaviour
     void Start()
     {
         if (_vatsController == null)
-            _vatsController = FindObjectOfType<VATSController>();
+            _vatsController = FindFirstObjectByType<VATSController>();
 
         if (_barrelLocation == null) _barrelLocation = transform;
 
