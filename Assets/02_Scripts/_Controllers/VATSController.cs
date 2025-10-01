@@ -46,6 +46,9 @@ public class VATSController : MonoBehaviour
     private float _originalTimeScale = 1f;
     public float OriginalTimeScale { get { return _originalTimeScale; } }
 
+    private CursorLockMode _previousCursorLockState = CursorLockMode.Locked;
+    private bool _previousCursorVisible;
+
     private IVATSTarget _currentTarget;
     public IVATSTarget CurrentTarget { get { return _currentTarget; } }
 
@@ -373,6 +376,10 @@ public class VATSController : MonoBehaviour
         {
             _originalTimeScale = Time.timeScale;
             Time.timeScale = _vatsTimeScale;
+            _previousCursorLockState = Cursor.lockState;
+            _previousCursorVisible = Cursor.visible;
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
             if (_vatsUI != null) _vatsUI.SetActive(true);
             if (_vatsUIView != null)
             {
@@ -384,6 +391,8 @@ public class VATSController : MonoBehaviour
         else
         {
             Time.timeScale = _originalTimeScale;
+            Cursor.lockState = _previousCursorLockState;
+            Cursor.visible = _previousCursorVisible;
             if (_vatsUI != null) _vatsUI.SetActive(false);
             if (_vatsUIView != null)
             {
