@@ -12,6 +12,9 @@ public class VATSUIView : MonoBehaviour, IVATSUIView
     [Header("Part Buttons")]
     [SerializeField] private RectTransform _partButtonParent;
     [SerializeField] private VATSPartButtonView _partButtonPrefab;
+    [SerializeField] private Camera _worldCamera;
+    [SerializeField] private Vector2 _partButtonScreenOffset = Vector2.zero;
+    [SerializeField] private bool _hideButtonsWhenOffscreen = true;
 
     [Header("Selected Part Info")]
     [SerializeField] private Text _selectedPartName;
@@ -28,6 +31,18 @@ public class VATSUIView : MonoBehaviour, IVATSUIView
 
     private readonly List<VATSPartButtonView> _spawnedButtons = new List<VATSPartButtonView>();
     private Action<IVATSPart> _onPartClicked;
+    private Canvas _parentCanvas;
+
+    void Awake()
+    {
+        if (_partButtonParent == null)
+            _partButtonParent = transform as RectTransform;
+
+        _parentCanvas = GetComponentInParent<Canvas>();
+
+        if (_worldCamera == null)
+            _worldCamera = Camera.main;
+    }
 
     public void Show()
     {
@@ -37,6 +52,11 @@ public class VATSUIView : MonoBehaviour, IVATSUIView
     public void Hide()
     {
         gameObject.SetActive(false);
+    }
+
+    void LateUpdate()
+    {
+        UpdatePartButtonPositions();
     }
 
     public void BindParts(IReadOnlyList<IVATSPart> parts, Action<IVATSPart> onPartClicked)
@@ -150,5 +170,73 @@ public class VATSUIView : MonoBehaviour, IVATSUIView
     void HandleButtonClicked(IVATSPart part)
     {
         _onPartClicked?.Invoke(part);
+    }
+
+    void UpdatePartButtonPositions()
+    {
+        if (_spawnedButtons.Count == 0)
+            return;
+
+        RectTransform parentRect = _partButtonParent != null ? _partButtonParent : transform as RectTransform;
+        if (parentRect == null)
+            return;
+
+        Camera worldCamera = _worldCamera != null ? _worldCamera : Camera.main;
+        if (worldCamera == null)
+            return;
+
+        Canvas canvas = _parentCanvas;
+        if (canvas == null)
+            canvas = parentRect.GetComponentInParent<Canvas>();
+
+        Camera uiCamera = null;
+        if (canvas != null)
+        {
+            if (canvas.renderMode == RenderMode.ScreenSpaceCamera || canvas.renderMode == RenderMode.WorldSpace)
+            {
+                uiCamera = canvas.worldCamera != null ? canvas.worldCamera : worldCamera;
+            }
+        }
+
+        for (int i = 0; i < _spawnedButtons.Count; i++)
+        {
+            VATSPartButtonView button = _spawnedButtons[i];
+            if (button == null)
+                continue;
+
+            IVATSPart part = button.Part;
+            Transform aimPoint = part != null ? part.AimPoint : null;
+
+            if (aimPoint == null)
+            {
+                if (_hideButtonsWhenOffscreen)
+                    button.SetVisible(false);
+                continue;
+            }
+
+            Vector3 screenPosition = worldCamera.WorldToScreenPoint(aimPoint.position);
+            if (screenPosition.z < 0f)
+            {
+                if (_hideButtonsWhenOffscreen)
+                    button.SetVisible(false);
+                continue;
+            }
+
+            if (RectTransformUtility.ScreenPointToLocalPointInRectangle(parentRect, screenPosition, uiCamera, out Vector2 localPoint))
+            {
+                RectTransform buttonRect = button.RectTransform;
+                if (buttonRect != null)
+                {
+                    buttonRect.anchoredPosition = localPoint + _partButtonScreenOffset;
+                }
+
+                if (!button.gameObject.activeSelf)
+                    button.SetVisible(true);
+            }
+            else if (_hideButtonsWhenOffscreen)
+            {
+                button.SetVisible(false);
+            }
+        }
     }
 }
