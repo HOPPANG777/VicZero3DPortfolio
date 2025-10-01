@@ -31,6 +31,7 @@ public class VATSPart : MonoBehaviour, IVATSPart
 
     [Header("피드백 트리거")]
     [SerializeField] private UnityEvent _onHitFeedback = new UnityEvent();
+    [SerializeField] private UnityEvent _onMissFeedback = new UnityEvent();
 
     private Renderer _renderer;
     private Color _originalColor;
@@ -108,5 +109,10 @@ public class VATSPart : MonoBehaviour, IVATSPart
         }
 
         _onHitFeedback?.Invoke();
+    }
+
+    public void OnMiss()
+    {
+        _onMissFeedback?.Invoke();
     }
 }

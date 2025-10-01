@@ -38,6 +38,15 @@ public interface IVATSUIView
     void UpdateAP(float current, float max, IReadOnlyList<IVATSPart> queuedParts);
 
     /// <summary>
+    /// 공격 결과를 표시한다.
+    /// </summary>
+    /// <param name="part">공격한 파츠</param>
+    /// <param name="isHit">명중 여부</param>
+    /// <param name="roll">명중 판정을 위한 주사위 값</param>
+    /// <param name="hitChance">파츠의 명중 확률</param>
+    void ShowAttackResult(IVATSPart part, bool isHit, float roll, float hitChance);
+
+    /// <summary>
     /// 표시 중인 파츠와 상태 정보를 모두 초기화한다.
     /// </summary>
     void Clear();

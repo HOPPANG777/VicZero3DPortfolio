@@ -11,4 +11,5 @@ public interface IVATSPart
     float APCost { get; }
     void Highlight(bool enable);
     void OnHit();
+    void OnMiss();
 }
