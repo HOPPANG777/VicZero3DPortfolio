@@ -23,6 +23,9 @@ public class VATSUIView : MonoBehaviour, IVATSUIView
     [Header("Queued Attacks")]
     [SerializeField] private Text _queuedShotsText;
 
+    [Header("Attack Result")]
+    [SerializeField] private Text _attackResultText;
+
     private readonly List<VATSPartButtonView> _spawnedButtons = new List<VATSPartButtonView>();
     private Action<IVATSPart> _onPartClicked;
 
@@ -95,6 +98,20 @@ public class VATSUIView : MonoBehaviour, IVATSUIView
         }
     }
 
+    public void ShowAttackResult(IVATSPart part, bool isHit, float roll, float hitChance)
+    {
+        if (_attackResultText == null)
+            return;
+
+        string partName = part != null ? part.PartName : "Unknown";
+        _attackResultText.text = string.Format(
+            "{0}: {1} (Roll {2:F1} / Chance {3:F0}%)",
+            partName,
+            isHit ? "Hit" : "Miss",
+            roll,
+            hitChance);
+    }
+
     public void Clear()
     {
         ClearButtons();
@@ -103,6 +120,7 @@ public class VATSUIView : MonoBehaviour, IVATSUIView
         if (_selectedPartName != null) _selectedPartName.text = string.Empty;
         if (_selectedPartChance != null) _selectedPartChance.text = string.Empty;
         if (_queuedShotsText != null) _queuedShotsText.text = string.Empty;
+        if (_attackResultText != null) _attackResultText.text = string.Empty;
         if (_apGaugeView != null) _apGaugeView.UpdateGauge(0f, 0f);
     }
 

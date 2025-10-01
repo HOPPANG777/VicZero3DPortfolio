@@ -306,7 +306,23 @@ public class VATSController : MonoBehaviour
         for (int i = 0; i < _queuedParts.Count; i++)
         {
             IVATSPart part = _queuedParts[i];
-            part?.OnHit();
+            if (part == null)
+                continue;
+
+            float hitChance = Mathf.Clamp(part.HitChance, 0f, 100f);
+            float roll = Random.Range(0f, 100f);
+            bool isHit = roll <= hitChance;
+
+            if (isHit)
+            {
+                part.OnHit();
+            }
+            else
+            {
+                part.OnMiss();
+            }
+
+            _vatsUIView?.ShowAttackResult(part, isHit, roll, hitChance);
         }
 
         _queuedParts.Clear();
