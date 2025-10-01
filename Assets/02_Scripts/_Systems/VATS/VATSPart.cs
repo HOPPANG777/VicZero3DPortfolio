@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Events;
 
 /// <summary>
 /// VATS에서 타격 가능한 신체 부위
@@ -24,8 +25,16 @@ public class VATSPart : MonoBehaviour, IVATSPart
     [Header("하이라이트 색상")]
     [SerializeField] private Color _highlightColor = Color.yellow;
 
+    [Header("피해 처리")]
+    [SerializeField] private float _damageAmount = 10f;
+    [SerializeField] private UnitHealth _unitHealth;
+
+    [Header("피드백 트리거")]
+    [SerializeField] private UnityEvent _onHitFeedback = new UnityEvent();
+
     private Renderer _renderer;
     private Color _originalColor;
+    private VATSTarget _ownerTarget;
 
     void Awake()
     {
@@ -33,6 +42,46 @@ public class VATSPart : MonoBehaviour, IVATSPart
         if (_renderer != null)
         {
             _originalColor = _renderer.material.color;
+        }
+
+        CacheUnitHealth();
+    }
+
+    void OnValidate()
+    {
+        _hitChance = Mathf.Clamp(_hitChance, 0f, 100f);
+        _damageAmount = Mathf.Max(0f, _damageAmount);
+
+        if (_renderer == null)
+        {
+            _renderer = GetComponent<Renderer>();
+            if (_renderer != null)
+            {
+                _originalColor = _renderer.sharedMaterial != null
+                    ? _renderer.sharedMaterial.color
+                    : Color.white;
+            }
+        }
+
+        CacheUnitHealth();
+    }
+
+    public void SetOwnerTarget(VATSTarget target)
+    {
+        _ownerTarget = target;
+        if (_unitHealth == null && _ownerTarget != null)
+        {
+            _unitHealth = _ownerTarget.Health;
+        }
+
+        CacheUnitHealth();
+    }
+
+    void CacheUnitHealth()
+    {
+        if (_unitHealth == null)
+        {
+            _unitHealth = GetComponentInParent<UnitHealth>();
         }
     }
 
@@ -44,7 +93,20 @@ public class VATSPart : MonoBehaviour, IVATSPart
 
     public void OnHit()
     {
-        // 맞았을 때의 기본 동작 : 여기서는 단순 로그 처리
-        Debug.Log($"{_partName} 부위가 명중됨");
+        if (_unitHealth == null)
+        {
+            CacheUnitHealth();
+        }
+
+        if (_unitHealth != null)
+        {
+            _unitHealth.ApplyDamage(_damageAmount);
+        }
+        else
+        {
+            Debug.LogWarning($"{name}에서 UnitHealth를 찾을 수 없습니다.");
+        }
+
+        _onHitFeedback?.Invoke();
     }
 }
