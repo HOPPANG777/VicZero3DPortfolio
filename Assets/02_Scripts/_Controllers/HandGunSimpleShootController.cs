@@ -4,6 +4,10 @@ using System.Collections;
 
 public class HandGunSimpleShootController : MonoBehaviour
 {
+    [Header("Dependencies")]
+    [SerializeField] private VATSController _vatsController;
+    public VATSController VatsController { get { return _vatsController; } set { _vatsController = value; } }
+
     [Header("Prefab Refrences")]
     [SerializeField] private GameObject _bulletPrefab;
     public GameObject BulletPrefab { get { return _bulletPrefab; } }
@@ -26,39 +30,42 @@ public class HandGunSimpleShootController : MonoBehaviour
 
     [Header("Settings")]
     [Tooltip("Specify time to destroy the casing object")]
-    [SerializeField] private float _destroyTimer; // ±âº» 2.0f
+    [SerializeField] private float _destroyTimer; // âº» 2.0f
     public float DestroyTimer { get { return _destroyTimer; } }
 
     [Tooltip("Bullet Speed")]
-    [SerializeField] private float _shotPower; // ±âº» 500.0f
+    [SerializeField] private float _shotPower; // âº» 500.0f
     public float ShotPower { get { return _shotPower; } }
 
     [Tooltip("Casing Ejection Speed")]
-    [SerializeField] private float _ejectPower; // ±âº» 150.0f
+    [SerializeField] private float _ejectPower; // âº» 150.0f
     public float EjectPower { get { return _ejectPower; } }
 
     [Tooltip("Bullet Lifetime (seconds) before returning to pool")]
-    [SerializeField] private float _bulletLifetime; // ±âº» 5.0f
+    [SerializeField] private float _bulletLifetime; // âº» 5.0f
     public float BulletLifetime { get { return _bulletLifetime; } }
 
-    // ÃÑ¾Ë ¿ÀºêÁ§Æ® Ç® (UnityEngine.Pool API »ç¿ë)
+    // Ñ¾ Æ® Ç® (UnityEngine.Pool API )
 
     [SerializeField] private ObjectPool<GameObject> _bulletPool;
     public ObjectPool<GameObject> BulletPool { get { return _bulletPool; } }
 
     void Start()
     {
+        if (_vatsController == null)
+            _vatsController = FindObjectOfType<VATSController>();
+
         if (_barrelLocation == null) _barrelLocation = transform;
 
         if (_gunAnimator == null) _gunAnimator = GetComponentInChildren<Animator>();
 
-        // ¿ÀºêÁ§Æ® Ç® ÃÊ±âÈ­
+        // Æ® Ç® Ê±È­
         _bulletPool = new ObjectPool<GameObject>
         (
-            CreateBullet,         // »õ ÃÑ¾Ë »ý¼º ÇÔ¼ö
-            OnTakeFromPool,       // Ç®¿¡¼­ ²¨³¾ ¶§ È£Ãâ
-            OnReturnedToPool,     // Ç®¿¡ ¹Ý³³ÇÒ ¶§ È£Ãâ
-            OnDestroyPoolObject,  // Ç®¿¡¼­ »èÁ¦µÉ ¶§ È£Ãâ
+            CreateBullet,         //  Ñ¾  Ô¼
+            OnTakeFromPool,       // Ç®   È£
+            OnReturnedToPool,     // Ç® Ý³  È£
+            OnDestroyPoolObject,  // Ç®   È£
             collectionCheck: false,
             defaultCapacity: 10,
             maxSize: 20
@@ -67,32 +74,35 @@ public class HandGunSimpleShootController : MonoBehaviour
 
     void Update()
     {
-        // Fire ÀÔ·Â (¿¹: ÁÂÅ¬¸¯) ½Ã ÃÑ ¹ß»ç ¾Ö´Ï¸ÞÀÌ¼Ç Æ®¸®°Å
+        if (_vatsController != null && _vatsController.IsVATSActive)
+            return;
+
+        // Fire Ô· (: Å¬)   ß» Ö´Ï¸Ì¼ Æ®
         if (Input.GetMouseButtonDown(0))
         {
             _gunAnimator.SetTrigger("Fire");
         }
     }
 
-    // Animation Event µî¿¡¼­ È£ÃâÇÏ¿© ÃÑ ¹ß»ç Ã³¸®
+    // Animation Event î¿¡ È£Ï¿  ß» Ã³
     void Shoot()
     {
-        // Muzzle Flash »ý¼º
+        // Muzzle Flash 
         if (_muzzleFlashPrefab)
         {
             GameObject tempFlash = Instantiate(_muzzleFlashPrefab, _barrelLocation.position, _barrelLocation.rotation);
             Destroy(tempFlash, _destroyTimer);
         }
 
-        // ÃÑ¾Ë PrefabÀÌ ÇÒ´çµÇÁö ¾Ê¾Ò´Ù¸é Á¾·á
+        // Ñ¾ Prefab Ò´ Ê¾Ò´Ù¸ 
         if (!_bulletPrefab) return;
 
-        // ¿ÀºêÁ§Æ® Ç®¿¡¼­ ÃÑ¾Ë °¡Á®¿À±â ´ë½Å InstantiateÇÏÁö ¾ÊÀ½
+        // Æ® Ç® Ñ¾   Instantiate 
         GameObject bullet = _bulletPool.Get();
         bullet.transform.position = _barrelLocation.position;
         bullet.transform.rotation = _barrelLocation.rotation;
 
-        // Rigidbody ¸®¼Â ¹× ÃÑ±¸ ¹æÇâÀ¸·Î Èû °¡ÇÏ±â
+        // Rigidbody   Ñ±   Ï±
         Rigidbody rb = bullet.GetComponent<Rigidbody>();
         if (rb != null)
         {
@@ -101,11 +111,11 @@ public class HandGunSimpleShootController : MonoBehaviour
             rb.AddForce(_barrelLocation.forward * _shotPower);
         }
 
-        // bulletLifetime ÈÄ ÃÑ¾ËÀ» Ç®¿¡ ¹Ý³³ (¹ÝÈ¯ÇÏ´Â ÄÚ·çÆ¾ ½ÇÇà)
+        // bulletLifetime  Ñ¾ Ç® Ý³ (È¯Ï´ Ú·Æ¾ )
         StartCoroutine(ReturnBulletAfterTime(bullet, _bulletLifetime));
     }
 
-    // ÃÑ¾Ë ¿ÀºêÁ§Æ® »ý¼º ÇÔ¼ö (ÃÊ±â »ý¼º½Ã È£ÃâµÊ)
+    // Ñ¾ Æ®  Ô¼ (Ê±  È£)
     GameObject CreateBullet()
     {
         GameObject bullet = Instantiate(_bulletPrefab, _barrelLocation.position, _barrelLocation.rotation);
@@ -113,32 +123,32 @@ public class HandGunSimpleShootController : MonoBehaviour
         return bullet;
     }
 
-    // ¿ÀºêÁ§Æ® Ç®¿¡¼­ ÃÑ¾ËÀ» ²¨³¾ ¶§ È£Ãâ
+    // Æ® Ç® Ñ¾   È£
     void OnTakeFromPool(GameObject bullet)
     {
         bullet.SetActive(true);
     }
 
-    // ÃÑ¾ËÀ» Ç®¿¡ ¹Ý³³ÇÒ ¶§ È£Ãâ
+    // Ñ¾ Ç® Ý³  È£
     void OnReturnedToPool(GameObject bullet)
     {
         bullet.SetActive(false);
     }
 
-    // ÃÑ¾ËÀÌ ÆÄ±«µÉ ¶§ È£Ãâ (Ç®ÀÇ maxSize ÃÊ°ú µî)
+    // Ñ¾ Ä±  È£ (Ç® maxSize Ê° )
     void OnDestroyPoolObject(GameObject bullet)
     {
         Destroy(bullet);
     }
 
-    // ÀÏÁ¤ ½Ã°£ÀÌ Áö³­ ÈÄ ÃÑ¾ËÀ» ´Ù½Ã Ç®·Î ¹Ý³³ÇÏ´Â ÄÚ·çÆ¾
+    //  Ã°   Ñ¾ Ù½ Ç® Ý³Ï´ Ú·Æ¾
     IEnumerator ReturnBulletAfterTime(GameObject bullet, float time)
     {
         yield return new WaitForSeconds(time);
         _bulletPool.Release(bullet);
     }
 
-    // ±âÁ¸ CasingRelease ÇÔ¼ö (ÃÑ¾Ë Ç®¸µ°ú º°°³·Î casingsÀº Instantiate/Destroy ¹æ½Ä)
+    //  CasingRelease Ô¼ (Ñ¾ Ç®  casings Instantiate/Destroy )
     void CasingRelease()
     {
         if (!_casingExitLocation || !_casingPrefab) return;

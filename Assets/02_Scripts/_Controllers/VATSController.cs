@@ -58,6 +58,9 @@ public class VATSController : MonoBehaviour
     private readonly List<IVATSPart> _queuedParts = new List<IVATSPart>();
     public IReadOnlyList<IVATSPart> QueuedParts { get { return _queuedParts; } }
 
+    private CursorLockMode _cachedCursorLockState = CursorLockMode.None;
+    private bool _cachedCursorVisible = true;
+
     void Awake()
     {
         ResolveUIViewReference();
@@ -397,6 +400,10 @@ public class VATSController : MonoBehaviour
         if (_isVATSActive)
         {
             _originalTimeScale = Time.timeScale;
+            _cachedCursorLockState = Cursor.lockState;
+            _cachedCursorVisible = Cursor.visible;
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
             Time.timeScale = _vatsTimeScale;
             if (_vatsUI != null) _vatsUI.SetActive(true);
             if (_vatsUIView != null)
@@ -409,6 +416,8 @@ public class VATSController : MonoBehaviour
         else
         {
             Time.timeScale = _originalTimeScale;
+            Cursor.lockState = _cachedCursorLockState;
+            Cursor.visible = _cachedCursorVisible;
             if (_vatsUI != null) _vatsUI.SetActive(false);
             if (_vatsUIView != null)
             {
