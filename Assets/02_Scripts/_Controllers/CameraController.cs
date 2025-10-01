@@ -12,75 +12,75 @@ using UnityEngine.InputSystem;
 //==============================================================================
 // CameraController
 //==============================================================================
-// Ä«¸Ş¶ó°¡ Å¸°Ù(ÇÃ·¹ÀÌ¾î)µîÀ» µû¶ó´Ù´Ïµµ·Ï ÇÏ´Â ÄÁÆ®·Ñ·¯
-// 1ÀÎÄª°ú 3ÀÎÄªÀ» ÀüÈ¯ ÇÒ ¼ö ÀÖÀ¸¸ç, 1ÀÎÄª¿¡¼­´Â ½Ã¾ßÀÇ ÀÚÀ¯ ÀüÈ¯ÀÌ °¡´ÉÇÏ´Ù.
-// ÇÃ·¹ÀÌ¾î´Â Ä«¸Ş¶ó¿¡ µû¶ó ÀÌµ¿ÇÒ ¼ö ÀÖµµ·Ï ÇÒ °ÍÀÌ´Ù.
-// 3ÀÎÄªÀº Ä«¸Ş¶ó°¡ ±âº»ÀûÀ¸·Ğ ÇÃ·¹ÀÌ¾î¸¦ µû¶ó¼­ ¿òÁ÷ÀÌÁö¸¸ È­¸é ÀüÈ¯ ¶ÇÇÑ °¡´ÉÇÏ´Ù.
-// ÇÃ·¹ÀÌ¾îÀÇ ÀÌµ¿ ·ÎÁ÷Àº PlayerMoveController·Î.
+// ì¹´ë©”ë¼ê°€ íƒ€ê²Ÿ(í”Œë ˆì´ì–´)ë“±ì„ ë”°ë¼ë‹¤ë‹ˆë„ë¡ í•˜ëŠ” ì»¨íŠ¸ë¡¤ëŸ¬
+// 1ì¸ì¹­ê³¼ 3ì¸ì¹­ì„ ì „í™˜ í•  ìˆ˜ ìˆìœ¼ë©°, 1ì¸ì¹­ì—ì„œëŠ” ì‹œì•¼ì˜ ììœ  ì „í™˜ì´ ê°€ëŠ¥í•˜ë‹¤.
+// í”Œë ˆì´ì–´ëŠ” ì¹´ë©”ë¼ì— ë”°ë¼ ì´ë™í•  ìˆ˜ ìˆë„ë¡ í•  ê²ƒì´ë‹¤.
+// 3ì¸ì¹­ì€ ì¹´ë©”ë¼ê°€ ê¸°ë³¸ì ìœ¼ë¡  í”Œë ˆì´ì–´ë¥¼ ë”°ë¼ì„œ ì›€ì§ì´ì§€ë§Œ í™”ë©´ ì „í™˜ ë˜í•œ ê°€ëŠ¥í•˜ë‹¤.
+// í”Œë ˆì´ì–´ì˜ ì´ë™ ë¡œì§ì€ PlayerMoveControllerë¡œ.
 //==============================================================================
 public class CameraController : MonoBehaviour
 {
-    // Ä«¸Ş¶ó°¡ µû¶ó°¥ ´ë»ó (ÇÃ·¹ÀÌ¾î µî)
+    // ì¹´ë©”ë¼ê°€ ë”°ë¼ê°ˆ ëŒ€ìƒ (í”Œë ˆì´ì–´ ë“±)
     [Header("Target Object")][SerializeField] GameObject _targetObject;
     public GameObject TargetObject { get { return _targetObject; } set { _targetObject = value; } }
 
-    // Å¸°ÙÀ¸·ÎºÎÅÍ 3ÀÎÄª ½ÃÁ¡ÀÏ ¶§ÀÇ ¿ÀÇÁ¼Â (¿¹: (0, 2, -5))
+    // íƒ€ê²Ÿìœ¼ë¡œë¶€í„° 3ì¸ì¹­ ì‹œì ì¼ ë•Œì˜ ì˜¤í”„ì…‹ (ì˜ˆ: (0, 2, -5))
     [Header("Third Person Offset")][SerializeField] Vector3 _thirdPersonOffset;
     public Vector3 ThirdPersonOffset { get { return _thirdPersonOffset; } set { _thirdPersonOffset = value; } }
 
-    // 1ÀÎÄª ½ÃÁ¡(ÇÃ·¹ÀÌ¾îÀÇ °¡½¿ À§Ä¡) ±âÁØ ¿ÀÇÁ¼Â
+    // 1ì¸ì¹­ ì‹œì (í”Œë ˆì´ì–´ì˜ ê°€ìŠ´ ìœ„ì¹˜) ê¸°ì¤€ ì˜¤í”„ì…‹
     [Header("First Person Offset (Chest)")][SerializeField] Vector3 _firstPersonOffset;
     public Vector3 FirstPersonOffset { get { return _firstPersonOffset; } set { _firstPersonOffset = value; } }
 
-    // 3ÀÎÄª°ú 1ÀÎÄª »çÀÌÀÇ º¸°£ °è¼ö
-    // 1.0f : ¿ÏÀü 3ÀÎÄª, 0.0f : ¿ÏÀü 1ÀÎÄª
+    // 3ì¸ì¹­ê³¼ 1ì¸ì¹­ ì‚¬ì´ì˜ ë³´ê°„ ê³„ìˆ˜
+    // 1.0f : ì™„ì „ 3ì¸ì¹­, 0.0f : ì™„ì „ 1ì¸ì¹­
     [Range(0f, 1f)][Header("Camera Lerp")][SerializeField] float _currentLerp;
     public float CurrentLerp { get { return _currentLerp; } set { _currentLerp = value; } }
 
-    // ¸¶¿ì½º ÀÌµ¿¿¡ µû¸¥ º¸°£ °ª º¯È­ ¹Î°¨µµ
+    // ë§ˆìš°ìŠ¤ ì´ë™ì— ë”°ë¥¸ ë³´ê°„ ê°’ ë³€í™” ë¯¼ê°ë„
     [Header("Camera Lerp")][SerializeField] float _lerpSensitivity;
     public float LerpSensitivity { get { return _lerpSensitivity; } set { _lerpSensitivity = value; } }
 
-    // 3ÀÎÄª ¸ğµå¿¡¼­ Ä«¸Ş¶ó°¡ ÇÃ·¹ÀÌ¾î¸¦ ³»·Á´Ùº¸µµ·Ï ÇÏ´Â Ãß°¡ ÇÇÄ¡ (´ÜÀ§: µµ)
+    // 3ì¸ì¹­ ëª¨ë“œì—ì„œ ì¹´ë©”ë¼ê°€ í”Œë ˆì´ì–´ë¥¼ ë‚´ë ¤ë‹¤ë³´ë„ë¡ í•˜ëŠ” ì¶”ê°€ í”¼ì¹˜ (ë‹¨ìœ„: ë„)
     [Header("Additional Third Person Pitch (Downward Angle)")][SerializeField] float _additionalThirdPersonPitch;
     public float AdditionalThirdPersonPitch { get { return _additionalThirdPersonPitch; } set { _additionalThirdPersonPitch = value; } }
 
-    // 1ÀÎÄª ¸ğµå¿¡¼­ÀÇ ¸¶¿ì½º ÀÚÀ¯È¸Àü °¨µµ
+    // 1ì¸ì¹­ ëª¨ë“œì—ì„œì˜ ë§ˆìš°ìŠ¤ ììœ íšŒì „ ê°ë„
     [Header("First Person Look Sensitivity")][SerializeField] float _firstPersonLookSensitivityX;
     public float FirstPersonLookSensitivityX { get { return _firstPersonLookSensitivityX; } set { _firstPersonLookSensitivityX = value; } }
 
     [Header("First Person Look Sensitivity")][SerializeField] float _firstPersonLookSensitivityY;
     public float FirstPersonLookSensitivityY { get { return _firstPersonLookSensitivityY; } set { _firstPersonLookSensitivityY = value; } }
 
-    [Header("Collision")][SerializeField] float _collisionOffset; // Ä«¸Ş¶ó¿Í Àå¾Ö¹° »çÀÌ ÃÖ¼Ò °Å¸®
+    [Header("Collision")][SerializeField] float _collisionOffset; // ì¹´ë©”ë¼ì™€ ì¥ì• ë¬¼ ì‚¬ì´ ìµœì†Œ ê±°ë¦¬
     public float CollisionOffset { get { return _collisionOffset; } }
 
-    [Header("Collision")][SerializeField] int _originalCullingMask; // Ä«¸Ş¶ó¿Í Àå¾Ö¹° »çÀÌ ÃÖ¼Ò °Å¸®
+    [Header("Collision")][SerializeField] int _originalCullingMask; // ì¹´ë©”ë¼ì™€ ì¥ì• ë¬¼ ì‚¬ì´ ìµœì†Œ ê±°ë¦¬
     public int OriginalCullingMask { get { return _originalCullingMask; } }
 
-    [Header("Camera")][SerializeField] Camera _cam; // Ä«¸Ş¶ó¿Í Àå¾Ö¹° »çÀÌ ÃÖ¼Ò °Å¸®
+    [Header("Camera")][SerializeField] Camera _cam; // ì¹´ë©”ë¼ì™€ ì¥ì• ë¬¼ ì‚¬ì´ ìµœì†Œ ê±°ë¦¬
     public Camera Cam { get { return _cam; } }
 
-    [Header("Third Person Camera Settings")][SerializeField] private float _thirdPersonOrbitSensitivity;  // ¸¶¿ì½º ÀÔ·Â ¹Î°¨µµ
+    [Header("Third Person Camera Settings")][SerializeField] private float _thirdPersonOrbitSensitivity;  // ë§ˆìš°ìŠ¤ ì…ë ¥ ë¯¼ê°ë„
     public float ThirdPersonOrbitSensitivity { get { return _thirdPersonOrbitSensitivity; } }
 
 
-    [Header("Third Person Camera Settings")][SerializeField] private float _thirdPersonVerticalSensitivity;    // »óÇÏ È¸Àü ¹Î°¨µµ
+    [Header("Third Person Camera Settings")][SerializeField] private float _thirdPersonVerticalSensitivity;    // ìƒí•˜ íšŒì „ ë¯¼ê°ë„
     public float ThirdPersonVerticalSensitivity { get { return _thirdPersonVerticalSensitivity; } }
 
-    [Header("Third Person Camera Settings")][SerializeField] private float _thirdPersonPitch;                  // ÃÊ±â ÇÇÄ¡ (¿¹: 0 È¤Àº ¾à°£ ¾Æ·¡·Î)
+    [Header("Third Person Camera Settings")][SerializeField] private float _thirdPersonPitch;                  // ì´ˆê¸° í”¼ì¹˜ (ì˜ˆ: 0 í˜¹ì€ ì•½ê°„ ì•„ë˜ë¡œ)
     public float ThirdPersonPitch { get { return _thirdPersonPitch; } }
 
-    [Header("Third Person Camera Settings")][SerializeField] private float _minThirdPersonPitch;               // ÃÊ±â ÇÇÄ¡ (¿¹: 0 È¤Àº ¾à°£ ¾Æ·¡·Î)
+    [Header("Third Person Camera Settings")][SerializeField] private float _minThirdPersonPitch;               // ì´ˆê¸° í”¼ì¹˜ (ì˜ˆ: 0 í˜¹ì€ ì•½ê°„ ì•„ë˜ë¡œ)
     public float MinThirdPersonPitch { get { return _minThirdPersonPitch; } }
 
-    [Header("Third Person Camera Settings")][SerializeField] private float _maxThirdPersonPitch;               // ÃÊ±â ÇÇÄ¡ (¿¹: 0 È¤Àº ¾à°£ ¾Æ·¡·Î)
+    [Header("Third Person Camera Settings")][SerializeField] private float _maxThirdPersonPitch;               // ì´ˆê¸° í”¼ì¹˜ (ì˜ˆ: 0 í˜¹ì€ ì•½ê°„ ì•„ë˜ë¡œ)
     public float MaxThirdPersonPitch { get { return _maxThirdPersonPitch; } }
 
-    // ³»ºÎÀûÀ¸·Î 1ÀÎÄª ¸ğµå¿¡¼­ÀÇ yaw, pitch °ªÀ» ÀúÀå
+    // ë‚´ë¶€ì ìœ¼ë¡œ 1ì¸ì¹­ ëª¨ë“œì—ì„œì˜ yaw, pitch ê°’ì„ ì €ì¥
     private float _firstPersonYaw;
     private float _firstPersonPitch;
-    private float _thirdPersonYaw = 0f; // ÇöÀç 3ÀÎÄª ¿Àºø °¢µµ
+    private float _thirdPersonYaw = 0f; // í˜„ì¬ 3ì¸ì¹­ ì˜¤ë¹— ê°ë„
 
     void Start()
     {
@@ -91,52 +91,54 @@ public class CameraController : MonoBehaviour
 
     void LateUpdate()
     {
-        // ¸¶¿ì½º ÀÔ·Â
-        float mouseX = Input.GetAxis("Mouse X");
-        float mouseY = Input.GetAxis("Mouse Y");
+        bool allowMouseControl = Cursor.lockState == CursorLockMode.Locked;
 
-        // 1ÀÎÄª ¸ğµåÀÏ ¶§ ÀÚÀ¯ È¸Àü (ÇöÀç ÄÚµå ±×´ë·Î)
+        // ë§ˆìš°ìŠ¤ ì…ë ¥
+        float mouseX = allowMouseControl ? Input.GetAxis("Mouse X") : 0f;
+        float mouseY = allowMouseControl ? Input.GetAxis("Mouse Y") : 0f;
+
+        // 1ì¸ì¹­ ëª¨ë“œì¼ ë•Œ ììœ  íšŒì „ (í˜„ì¬ ì½”ë“œ ê·¸ëŒ€ë¡œ)
         if (_currentLerp < 0.01f)
         {
             CameraFreeRotate(mouseX, mouseY);
         }
         else
         {
-            // 3ÀÎÄª ¸ğµå¿¡¼­´Â ¸¶¿ì½º X ÀÔ·ÂÀ¸·Î ¿Àºø °¢µµ¸¦ ¾÷µ¥ÀÌÆ®ÇÕ´Ï´Ù.
+            // 3ì¸ì¹­ ëª¨ë“œì—ì„œëŠ” ë§ˆìš°ìŠ¤ X ì…ë ¥ìœ¼ë¡œ ì˜¤ë¹— ê°ë„ë¥¼ ì—…ë°ì´íŠ¸í•©ë‹ˆë‹¤.
             _thirdPersonYaw += mouseX * _thirdPersonOrbitSensitivity;
             _thirdPersonPitch = Mathf.Clamp(_thirdPersonPitch - mouseY * _thirdPersonVerticalSensitivity, _minThirdPersonPitch, _maxThirdPersonPitch);
         }
 
-        // ÀüÈ¯ ÀÔ·Â Ã³¸® (ÇöÀç ÄÚµå ±×´ë·Î)
-        CameraInput(mouseY);
+        // ì „í™˜ ì…ë ¥ ì²˜ë¦¬ (í˜„ì¬ ì½”ë“œ ê·¸ëŒ€ë¡œ)
+        CameraInput(mouseY, allowMouseControl);
 
-        // [Ä«¸Ş¶ó À§Ä¡ °è»ê]
-        // 1ÀÎÄª À§Ä¡: Å¸°Ù À§Ä¡ + 1ÀÎÄª ¿ÀÇÁ¼Â (°¡½¿ À§Ä¡)
+        // [ì¹´ë©”ë¼ ìœ„ì¹˜ ê³„ì‚°]
+        // 1ì¸ì¹­ ìœ„ì¹˜: íƒ€ê²Ÿ ìœ„ì¹˜ + 1ì¸ì¹­ ì˜¤í”„ì…‹ (ê°€ìŠ´ ìœ„ì¹˜)
         Vector3 firstPersonPos = _targetObject.transform.position + _firstPersonOffset;
 
         Vector3 thirdPersonPos;
         if (_currentLerp > 0.01f)
         {
-            // 3ÀÎÄª ¸ğµå: ¸¶¿ì½º ÀÔ·Â¿¡ µû¸¥ ÇÇÄ¡¿Í ¿ä¸¦ ¸ğµÎ Àû¿ë
+            // 3ì¸ì¹­ ëª¨ë“œ: ë§ˆìš°ìŠ¤ ì…ë ¥ì— ë”°ë¥¸ í”¼ì¹˜ì™€ ìš”ë¥¼ ëª¨ë‘ ì ìš©
             Quaternion orbitRotation = Quaternion.Euler(_thirdPersonPitch, _thirdPersonYaw, 0f);
             thirdPersonPos = _targetObject.transform.position + orbitRotation * _thirdPersonOffset;
         }
         else
         {
-            // 1ÀÎÄª ¸ğµå: ±âÁ¸ ¹æ½Ä À¯Áö
+            // 1ì¸ì¹­ ëª¨ë“œ: ê¸°ì¡´ ë°©ì‹ ìœ ì§€
             thirdPersonPos = _targetObject.transform.position + _targetObject.transform.rotation * _thirdPersonOffset;
         }
 
-        // Lerp¸¦ ÅëÇØ ÃÖÁ¾ Ä«¸Ş¶ó À§Ä¡ °è»ê
+        // Lerpë¥¼ í†µí•´ ìµœì¢… ì¹´ë©”ë¼ ìœ„ì¹˜ ê³„ì‚°
         Vector3 desiredPosition = Vector3.Lerp(firstPersonPos, thirdPersonPos, _currentLerp);
 
-        // [Ãæµ¹ Ã³¸®]
+        // [ì¶©ëŒ ì²˜ë¦¬]
         CameraOnCollider(desiredPosition, firstPersonPos);
 
-        // [Ä«¸Ş¶ó È¸Àü Ã³¸®]
+        // [ì¹´ë©”ë¼ íšŒì „ ì²˜ë¦¬]
         CameraRotate(firstPersonPos);
 
-        // [Ä«¸Ş¶ó ÄÃ¸µ¸¶½ºÅ©]
+        // [ì¹´ë©”ë¼ ì»¬ë§ë§ˆìŠ¤í¬]
         UpdateCullingMask();
     }
 
@@ -145,7 +147,7 @@ public class CameraController : MonoBehaviour
     {
         if (_targetObject == null) return;
 
-        // ÃÊ±â 1ÀÎÄª È¸Àü °¢µµ´Â Å¸°ÙÀÇ È¸Àü¿¡¼­ °¡Á®¿É´Ï´Ù.
+        // ì´ˆê¸° 1ì¸ì¹­ íšŒì „ ê°ë„ëŠ” íƒ€ê²Ÿì˜ íšŒì „ì—ì„œ ê°€ì ¸ì˜µë‹ˆë‹¤.
         Vector3 angles = _targetObject.transform.rotation.eulerAngles;
         _firstPersonYaw = angles.y;
         _firstPersonPitch = angles.x;
@@ -153,19 +155,21 @@ public class CameraController : MonoBehaviour
 
     void CameraFreeRotate(float mouseX, float mouseY)
     {
-        // _currentLerp°¡ 0¿¡ °¡±î¿ì¸é(1ÀÎÄª ¸ğµå)¸¸ ÀÚÀ¯ È¸Àü °ªÀ» ¾÷µ¥ÀÌÆ®
+        // _currentLerpê°€ 0ì— ê°€ê¹Œìš°ë©´(1ì¸ì¹­ ëª¨ë“œ)ë§Œ ììœ  íšŒì „ ê°’ì„ ì—…ë°ì´íŠ¸
         if (_currentLerp > 0.01f) return;
 
         _firstPersonYaw += mouseX * _firstPersonLookSensitivityX;
         _firstPersonPitch = Mathf.Clamp(_firstPersonPitch - mouseY * _firstPersonLookSensitivityY, -89f, 89f);
     }
 
-    void CameraInput(float mouseY)
+    void CameraInput(float mouseY, bool allowMouseControl)
     {
-        // VÅ°¿Í ÁÂÅ¬¸¯ÀÌ ´­¸®Áö ¾Ê¾Ò´Ù¸é ¹Ù·Î ¹İÈ¯
+        if (!allowMouseControl) return;
+
+        // Ví‚¤ì™€ ì¢Œí´ë¦­ì´ ëˆŒë¦¬ì§€ ì•Šì•˜ë‹¤ë©´ ë°”ë¡œ ë°˜í™˜
         if (!(Input.GetKey(KeyCode.V) && Input.GetMouseButton(0))) return;
 
-        // ¸¶¿ì½º Y°¡ À½¼ö(µÚ·Î ´ç±â¸é) _currentLerp Áõ°¡: 3ÀÎÄª ÀüÈ¯
+        // ë§ˆìš°ìŠ¤ Yê°€ ìŒìˆ˜(ë’¤ë¡œ ë‹¹ê¸°ë©´) _currentLerp ì¦ê°€: 3ì¸ì¹­ ì „í™˜
         _currentLerp = Mathf.Clamp01(_currentLerp - mouseY * _lerpSensitivity);
     }
 
@@ -174,16 +178,16 @@ public class CameraController : MonoBehaviour
         Vector3 offsetDir = desiredPosition - firstPersonPos;
         float offsetDist = offsetDir.magnitude;
 
-        // Ä«¸Ş¶ó°¡ ÀÌµ¿ÇÒ °Å¸®°¡ ±ØÈ÷ ÀÛÀ¸¸é ¹Ù·Î ¿øÇÏ´Â À§Ä¡·Î ¼³Á¤
+        // ì¹´ë©”ë¼ê°€ ì´ë™í•  ê±°ë¦¬ê°€ ê·¹íˆ ì‘ìœ¼ë©´ ë°”ë¡œ ì›í•˜ëŠ” ìœ„ì¹˜ë¡œ ì„¤ì •
         if (offsetDist <= 0.001f)
         {
             this.transform.position = desiredPosition;
             return;
         }
 
-        offsetDir /= offsetDist; // Á¤±ÔÈ­
+        offsetDir /= offsetDist; // ì •ê·œí™”
 
-        // Ã¹¹øÂ° ÁöÁ¡ºÎÅÍ ¿øÇÏ´Â À§Ä¡±îÁö ·¹ÀÌÄ³½ºÆ® ÈÄ Àå¾Ö¹°ÀÌ ÀÖÀ¸¸é Á¶Á¤
+        // ì²«ë²ˆì§¸ ì§€ì ë¶€í„° ì›í•˜ëŠ” ìœ„ì¹˜ê¹Œì§€ ë ˆì´ìºìŠ¤íŠ¸ í›„ ì¥ì• ë¬¼ì´ ìˆìœ¼ë©´ ì¡°ì •
         if (Physics.Raycast(firstPersonPos, offsetDir, out RaycastHit hit, offsetDist) && hit.collider.gameObject != _targetObject)
         {
             float adjustedDist = Mathf.Max(hit.distance - _collisionOffset, 0f);
@@ -197,8 +201,8 @@ public class CameraController : MonoBehaviour
     {
         if (_currentLerp > 0.01f)
         {
-            // 3ÀÎÄª ¸ğµå: ¿Àºø È¸Àü °ªÀ» ±×´ë·Î Àû¿ëÇÏ¿© Ä«¸Ş¶ó À§Ä¡¸¦ °áÁ¤ÇÏ°í,
-            // ´ë»ó(ÇÃ·¹ÀÌ¾î)À» ¹Ù¶óº¸µµ·Ï º¸Á¤ÇÏ´Â ¹æ¹ıµµ ÀÖÀ¸³ª, ¿©±â¼­´Â ´Ü¼øÈ÷ ¿Àºø È¸ÀüÀ» »ç¿ëÇÕ´Ï´Ù.
+            // 3ì¸ì¹­ ëª¨ë“œ: ì˜¤ë¹— íšŒì „ ê°’ì„ ê·¸ëŒ€ë¡œ ì ìš©í•˜ì—¬ ì¹´ë©”ë¼ ìœ„ì¹˜ë¥¼ ê²°ì •í•˜ê³ ,
+            // ëŒ€ìƒ(í”Œë ˆì´ì–´)ì„ ë°”ë¼ë³´ë„ë¡ ë³´ì •í•˜ëŠ” ë°©ë²•ë„ ìˆìœ¼ë‚˜, ì—¬ê¸°ì„œëŠ” ë‹¨ìˆœíˆ ì˜¤ë¹— íšŒì „ì„ ì‚¬ìš©í•©ë‹ˆë‹¤.
             //Quaternion orbitRotation = Quaternion.Euler(_thirdPersonPitch, _thirdPersonYaw, 0f);
             //this.transform.rotation = orbitRotation;
 
@@ -210,19 +214,19 @@ public class CameraController : MonoBehaviour
             return;
         }
 
-        // 1ÀÎÄª ¸ğµå: ÀÚÀ¯ È¸Àü °ª Àû¿ë
+        // 1ì¸ì¹­ ëª¨ë“œ: ììœ  íšŒì „ ê°’ ì ìš©
         this.transform.rotation = Quaternion.Euler(_firstPersonPitch, _firstPersonYaw, 0f);
     }
 
     void UpdateCullingMask()
     {
-        int playerLayer = LayerMask.NameToLayer("Player"); // ÇÃ·¹ÀÌ¾î°¡ ÇÒ´çµÈ ·¹ÀÌ¾î ÀÌ¸§
-        if (_currentLerp < 0.01f) // 1ÀÎÄª ¸ğµå
+        int playerLayer = LayerMask.NameToLayer("Player"); // í”Œë ˆì´ì–´ê°€ í• ë‹¹ëœ ë ˆì´ì–´ ì´ë¦„
+        if (_currentLerp < 0.01f) // 1ì¸ì¹­ ëª¨ë“œ
         {
-            // ¿ø·¡ ¸¶½ºÅ©¿¡¼­ ÇÃ·¹ÀÌ¾î ·¹ÀÌ¾î Á¦°Å
+            // ì›ë˜ ë§ˆìŠ¤í¬ì—ì„œ í”Œë ˆì´ì–´ ë ˆì´ì–´ ì œê±°
             _cam.cullingMask = _originalCullingMask & ~(1 << playerLayer);
         }
-        else // 3ÀÎÄª ¸ğµå
+        else // 3ì¸ì¹­ ëª¨ë“œ
         {
             _cam.cullingMask = _originalCullingMask;
         }
