@@ -35,6 +35,12 @@ public class VATSController : MonoBehaviour
     [SerializeField] private float _maxAP = 6f;
     public float MaxAP { get { return _maxAP; } set { _maxAP = Mathf.Max(0f, value); } }
 
+    [Tooltip("초당 회복되는 AP 양 (Time.unscaledDeltaTime 기준)")]
+    [SerializeField] private float _apRechargeRate = 2f;
+
+    [Tooltip("비활성화 상태에서만 AP를 회복할지 여부")]
+    [SerializeField] private bool _rechargeOnlyWhenInactive = true;
+
     [Header("Targeting")]
     [Tooltip("타겟 레이어 마스크")]
     [SerializeField] private LayerMask _targetLayerMask = ~0;
@@ -108,10 +114,35 @@ public class VATSController : MonoBehaviour
             ToggleVATS();
         }
 
+        RechargeAP();
+
         if (_isVATSActive)
         {
             UpdateTargeting();
             HandlePartInput();
+        }
+    }
+
+    void RechargeAP()
+    {
+        if (_maxAP <= 0f)
+            return;
+
+        if (_currentAP >= _maxAP - Mathf.Epsilon)
+            return;
+
+        if (_rechargeOnlyWhenInactive && _isVATSActive)
+            return;
+
+        float rate = Mathf.Max(0f, _apRechargeRate);
+        if (rate <= 0f)
+            return;
+
+        float newAP = Mathf.Min(_maxAP, _currentAP + rate * Time.unscaledDeltaTime);
+        if (!Mathf.Approximately(newAP, _currentAP))
+        {
+            _currentAP = newAP;
+            UpdateAPUI();
         }
     }
 
