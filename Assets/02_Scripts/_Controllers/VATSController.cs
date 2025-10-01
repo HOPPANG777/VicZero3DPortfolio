@@ -21,7 +21,7 @@ public class VATSController : MonoBehaviour
     [SerializeField] private GameObject _vatsUI;
     public GameObject VatsUI { get { return _vatsUI; } }
 
-    [Tooltip("IVATSUIView를 구현한 UI 컴포넌트")]
+    [Tooltip("IVATSUIView를 구현한 UI 컴포넌트. 비워두면 VATS UI 오브젝트에서 자동으로 찾습니다.")]
     [SerializeField] private MonoBehaviour _vatsUIViewBehaviour;
     private IVATSUIView _vatsUIView;
     public IVATSUIView VatsUIView { get { return _vatsUIView; } }
@@ -60,17 +60,42 @@ public class VATSController : MonoBehaviour
 
     void Awake()
     {
-        if (_vatsUIViewBehaviour != null)
-        {
-            _vatsUIView = _vatsUIViewBehaviour as IVATSUIView;
-            if (_vatsUIView == null)
-            {
-                Debug.LogError("할당된 UI 컴포넌트가 IVATSUIView를 구현하지 않습니다.", _vatsUIViewBehaviour);
-            }
-        }
+        ResolveUIViewReference();
 
         _currentAP = Mathf.Max(0f, _maxAP);
         UpdateAPUI();
+    }
+
+    void ResolveUIViewReference()
+    {
+        if (_vatsUIViewBehaviour != null)
+        {
+            _vatsUIView = _vatsUIViewBehaviour as IVATSUIView;
+            if (_vatsUIView != null)
+                return;
+
+            Debug.LogError("할당된 UI 컴포넌트가 IVATSUIView를 구현하지 않습니다.", _vatsUIViewBehaviour);
+        }
+
+        if (_vatsUI == null)
+            return;
+
+        MonoBehaviour[] uiBehaviours = _vatsUI.GetComponentsInChildren<MonoBehaviour>(true);
+        for (int i = 0; i < uiBehaviours.Length; i++)
+        {
+            IVATSUIView candidate = uiBehaviours[i] as IVATSUIView;
+            if (candidate == null)
+                continue;
+
+            _vatsUIViewBehaviour = uiBehaviours[i];
+            _vatsUIView = candidate;
+            return;
+        }
+
+        if (_vatsUIView == null)
+        {
+            Debug.LogError("VATS UI에서 IVATSUIView 구현체를 찾지 못했습니다. VATSUIView(또는 인터페이스를 구현한 스크립트)를 추가하고 참조를 연결하세요.", _vatsUI);
+        }
     }
 
     void Update()
