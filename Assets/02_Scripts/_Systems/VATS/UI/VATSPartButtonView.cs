@@ -17,6 +17,7 @@ public class VATSPartButtonView : MonoBehaviour
     public IVATSPart Part { get; private set; }
 
     private Action<IVATSPart> _onClicked;
+    private RectTransform _rectTransform;
 
     void Awake()
     {
@@ -39,12 +40,27 @@ public class VATSPartButtonView : MonoBehaviour
         SetSelected(false);
     }
 
+    public RectTransform RectTransform
+    {
+        get
+        {
+            if (_rectTransform == null)
+                _rectTransform = transform as RectTransform;
+            return _rectTransform;
+        }
+    }
+
     public void SetSelected(bool selected)
     {
         if (_background != null)
         {
             _background.color = selected ? _selectedColor : _normalColor;
         }
+    }
+
+    public void SetVisible(bool visible)
+    {
+        gameObject.SetActive(visible);
     }
 
     void UpdateLabel()
